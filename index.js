@@ -21,9 +21,8 @@ fs.mkdirSync(projectName);
 process.chdir(projectName);
 execSync('npm init -y', { stdio: 'inherit' });
 
-// Создаём index.html в корне проекта
 fs.writeFileSync(
-  path.join(projectName, 'index.html'),
+  path.join('.', 'index.html'),
   `<!DOCTYPE html>
 <html lang="en">
   <head>
