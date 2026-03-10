@@ -16,9 +16,10 @@ console.log(
 );
 
 // Создаём проект Vite без интерактива
-execSync(`npm create vite@latest ${projectName} -- --template react-ts --yes`, {
-  stdio: 'inherit',
-});
+execSync(
+  `npm create vite@latest ${projectName} -- --template react-ts --yes --force`,
+  { stdio: 'inherit' },
+);
 process.chdir(projectName);
 
 // Устанавливаем зависимости
@@ -29,7 +30,7 @@ execSync('npm install', { stdio: 'inherit' });
 console.log(chalk.green('Installing React Router...'));
 execSync('npm install react-router-dom', { stdio: 'inherit' });
 
-// Устанавливаем Tailwind
+// Устанавливаем TailwindCSS
 console.log(chalk.green('Installing TailwindCSS...'));
 execSync('npm install -D tailwindcss postcss autoprefixer', {
   stdio: 'inherit',
