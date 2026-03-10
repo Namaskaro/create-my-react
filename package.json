@@ -1,0 +1,11 @@
+{
+  "name": "create-my-react",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "create-my-react": "./index.js"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0"
+  }
+}
