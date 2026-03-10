@@ -15,22 +15,33 @@ console.log(
   chalk.green(`Creating React + Vite + TypeScript project: ${projectName}`),
 );
 
-execSync(`npm create vite@latest ${projectName} -- --template react-ts`, {
+// Создаём проект Vite без интерактива
+execSync(`npm create vite@latest ${projectName} -- --template react-ts --yes`, {
   stdio: 'inherit',
 });
 process.chdir(projectName);
 
-// Установка зависимостей
+// Устанавливаем зависимости
 console.log(chalk.green('Installing dependencies...'));
-execSync(`npm install`, { stdio: 'inherit' });
-execSync(`npm install react-router-dom`, { stdio: 'inherit' });
-execSync(`npm install -D tailwindcss postcss autoprefixer`, {
+execSync('npm install', { stdio: 'inherit' });
+
+// Устанавливаем React Router
+console.log(chalk.green('Installing React Router...'));
+execSync('npm install react-router-dom', { stdio: 'inherit' });
+
+// Устанавливаем Tailwind
+console.log(chalk.green('Installing TailwindCSS...'));
+execSync('npm install -D tailwindcss postcss autoprefixer', {
   stdio: 'inherit',
 });
-execSync(`npx tailwindcss init -p`, { stdio: 'inherit' });
-execSync(`npx shadcn-ui@latest init -y`, { stdio: 'inherit' });
+execSync('npx tailwindcss init -p', { stdio: 'inherit' });
 
-// Создание FSD структуры
+// Устанавливаем shadcn/ui
+console.log(chalk.green('Installing shadcn/ui...'));
+execSync('npm install @shadcn/ui', { stdio: 'inherit' });
+execSync('npx shadcn-ui init -y', { stdio: 'inherit' });
+
+// Создаём FSD структуру
 console.log(chalk.green('Creating Feature-Sliced Design structure...'));
 [
   'src/app',
@@ -44,8 +55,8 @@ console.log(chalk.green('Creating Feature-Sliced Design structure...'));
   'src/shared/config',
 ].forEach((dir) => fs.mkdirSync(dir, { recursive: true }));
 
-// Настройка alias для TypeScript
-console.log(chalk.green('Configuring TS paths...'));
+// Настраиваем alias для TypeScript
+console.log(chalk.green('Configuring TypeScript paths...'));
 const tsconfig = JSON.parse(fs.readFileSync('tsconfig.json'));
 tsconfig.compilerOptions = {
   ...tsconfig.compilerOptions,
@@ -62,7 +73,7 @@ tsconfig.compilerOptions = {
 };
 fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2));
 
-// Настройка alias для Vite
+// Настраиваем alias для Vite
 console.log(chalk.green('Configuring Vite aliases...'));
 const viteConfig = `
 import { defineConfig } from 'vite';
@@ -86,6 +97,7 @@ export default defineConfig({
 `;
 fs.writeFileSync('vite.config.ts', viteConfig);
 
+// Финальный вывод
 console.log(chalk.green('\nProject created successfully!'));
 console.log(`cd ${projectName}`);
 console.log('npm run dev');
