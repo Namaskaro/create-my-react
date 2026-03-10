@@ -7,8 +7,7 @@ import path from 'path';
 const projectName = process.argv[2];
 
 if (!projectName) {
-  console.log('Usage:');
-  console.log('npx create-my-react my-app');
+  console.log('Usage: npx create-my-react my-app');
   process.exit(1);
 }
 
@@ -19,20 +18,52 @@ console.log(`Creating project: ${projectName}`);
 fs.mkdirSync(projectPath, { recursive: true });
 process.chdir(projectPath);
 
-execSync('npm init -y', { stdio: 'inherit' });
+/* =========================
+   PACKAGE.JSON
+========================= */
+
+const pkg = {
+  name: projectName,
+  version: '1.0.0',
+  type: 'module',
+  scripts: {
+    dev: 'vite',
+    build: 'vite build',
+    preview: 'vite preview',
+  },
+};
+
+fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+
+/* =========================
+   INSTALL DEPENDENCIES
+========================= */
 
 console.log('Installing dependencies...');
 
-execSync(
-  'npm install react react-dom react-router-dom vite typescript @vitejs/plugin-react',
-  { stdio: 'inherit' },
-);
+execSync('npm install react react-dom react-router-dom', { stdio: 'inherit' });
+
+execSync('npm install -D vite typescript @vitejs/plugin-react', {
+  stdio: 'inherit',
+});
 
 execSync('npm install -D tailwindcss @tailwindcss/vite @tailwindcss/postcss', {
   stdio: 'inherit',
 });
 
-console.log('Creating project structure...');
+/* =========================
+   TYPESCRIPT
+========================= */
+
+console.log('Creating TypeScript config...');
+
+execSync('npx tsc --init', { stdio: 'inherit' });
+
+/* =========================
+   FSD STRUCTURE
+========================= */
+
+console.log('Creating FSD structure...');
 
 const folders = [
   'src',
@@ -51,40 +82,11 @@ folders.forEach((folder) => {
   fs.mkdirSync(folder, { recursive: true });
 });
 
-console.log('Creating tsconfig...');
+/* =========================
+   VITE CONFIG
+========================= */
 
-execSync('npx tsc --init', { stdio: 'inherit' });
-
-console.log('Creating Tailwind config...');
-
-fs.writeFileSync(
-  'tailwind.config.js',
-  `/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-`,
-);
-
-fs.writeFileSync(
-  'postcss.config.js',
-  `export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-`,
-);
-
-console.log('Creating Vite config...');
+console.log('Creating vite.config.ts');
 
 fs.writeFileSync(
   'vite.config.ts',
@@ -101,7 +103,42 @@ export default defineConfig({
 `,
 );
 
-console.log('Creating HTML...');
+/* =========================
+   POSTCSS
+========================= */
+
+fs.writeFileSync(
+  'postcss.config.js',
+  `export default {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+}
+`,
+);
+
+/* =========================
+   TAILWIND
+========================= */
+
+fs.writeFileSync(
+  'tailwind.config.js',
+  `export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}"
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+`,
+);
+
+/* =========================
+   HTML
+========================= */
 
 fs.writeFileSync(
   'index.html',
@@ -120,7 +157,9 @@ fs.writeFileSync(
 `,
 );
 
-console.log('Creating styles...');
+/* =========================
+   CSS
+========================= */
 
 fs.writeFileSync(
   'src/index.css',
@@ -128,18 +167,23 @@ fs.writeFileSync(
 `,
 );
 
-console.log('Creating React files...');
+/* =========================
+   REACT FILES
+========================= */
 
 fs.writeFileSync(
   'src/main.tsx',
   `import React from "react"
 import ReactDOM from "react-dom/client"
+import { BrowserRouter } from "react-router-dom"
 import App from "./app/App"
 import "./index.css"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 )
 `,
@@ -159,21 +203,9 @@ fs.writeFileSync(
 `,
 );
 
-console.log('Updating package.json scripts...');
-
-const pkg = JSON.parse(fs.readFileSync('package.json'));
-
-pkg.scripts = {
-  dev: 'vite',
-  build: 'vite build',
-  preview: 'vite preview',
-};
-
-fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+/* =========================
+   DONE
+========================= */
 
 console.log('');
-console.log('Project created successfully');
-console.log('');
-console.log(`cd ${projectName}`);
-console.log('npm run dev');
-console.log('');
+console.log('Project created successfully!');
