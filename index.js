@@ -116,7 +116,10 @@ fs.writeFileSync('vite.config.ts', viteConfig);
 
 // Создаём базовый index.css с Tailwind
 fs.mkdirSync('src', { recursive: true });
-fs.writeFileSync(path.join('src', 'index.css'), `@tailwindcss;`);
+fs.writeFileSync(
+  path.join('src', 'index.css'),
+  `@tailwindcss;\n@tailwind components;\n@tailwind utilities;\n`,
+);
 
 // Обновляем package.json для type="module" и скриптов
 const pkg = JSON.parse(fs.readFileSync('package.json'));
