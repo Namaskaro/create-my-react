@@ -19,30 +19,25 @@ console.log(
 // Создаём папку проекта и инициализируем npm
 fs.mkdirSync(projectName);
 process.chdir(projectName);
+execSync('npm init -y', { stdio: 'inherit' });
 
-execSync(`npm init -y`, { stdio: 'inherit' });
-
-// Устанавливаем React, ReactDOM, Vite и TypeScript
+// Устанавливаем React, ReactDOM, React Router, Vite и TypeScript
 console.log(
-  chalk.green(
-    'Installing React, ReactDOM, Vite, TypeScript and React Router...',
-  ),
+  chalk.green('Installing React, ReactDOM, React Router, Vite, TypeScript...'),
 );
-execSync(`npm install react react-dom react-router-dom`, { stdio: 'inherit' });
+execSync('npm install react react-dom react-router-dom', { stdio: 'inherit' });
 execSync(
-  `npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom`,
-  {
-    stdio: 'inherit',
-  },
+  'npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom',
+  { stdio: 'inherit' },
 );
 
 // Устанавливаем Tailwind и плагины для Vite
 console.log(chalk.green('Installing TailwindCSS + plugins...'));
-execSync(`npm install -D tailwindcss @tailwindcss/vite @tailwindcss/postcss`, {
+execSync('npm install -D tailwindcss @tailwindcss/vite @tailwindcss/postcss', {
   stdio: 'inherit',
 });
 
-// Создаём структуру Feature-Sliced Design
+// Создаём FSD структуру
 console.log(chalk.green('Creating Feature-Sliced Design structure...'));
 const folders = [
   'src/app',
@@ -57,7 +52,7 @@ const folders = [
 ];
 folders.forEach((f) => fs.mkdirSync(f, { recursive: true }));
 
-// Создаём tsconfig.json с правильными путями и настройками
+// Создаём tsconfig.json с путями
 console.log(chalk.green('Creating tsconfig.json...'));
 const tsconfig = {
   compilerOptions: {
@@ -114,14 +109,53 @@ export default defineConfig({
 `;
 fs.writeFileSync('vite.config.ts', viteConfig);
 
-// Создаём базовый index.css с Tailwind
+// Создаём index.css для Tailwind
 fs.mkdirSync('src', { recursive: true });
 fs.writeFileSync(
   path.join('src', 'index.css'),
-  `@tailwindcss;\n@tailwind components;\n@tailwind utilities;\n`,
+  `
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+`,
 );
 
-// Обновляем package.json для type="module" и скриптов
+// Создаём main.tsx с BrowserRouter
+fs.writeFileSync(
+  path.join('src', 'main.tsx'),
+  `
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './app/App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);
+`,
+);
+
+// Создаём App.tsx
+fs.mkdirSync('src/app', { recursive: true });
+fs.writeFileSync(
+  path.join('src/app', 'App.tsx'),
+  `import React from 'react';
+
+export default function App() {
+  return (
+    <div className="text-center text-blue-500">
+      Hello, React + Vite + TypeScript + Tailwind + FSD!
+    </div>
+  );
+}`,
+);
+
+// Обновляем package.json
 const pkg = JSON.parse(fs.readFileSync('package.json'));
 pkg.type = 'module';
 pkg.scripts = {
@@ -135,4 +169,4 @@ console.log('');
 console.log(chalk.green('Project created successfully!'));
 console.log('');
 console.log(`cd ${projectName}`);
-console.log(`npm run dev`);
+console.log('npm run dev');
