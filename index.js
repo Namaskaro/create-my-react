@@ -2,6 +2,7 @@
 import { execSync } from 'child_process';
 import chalk from 'chalk';
 import fs from 'fs';
+import path from 'path';
 
 const projectName = process.argv[2];
 
@@ -15,37 +16,30 @@ console.log(
   chalk.green(`Creating React + Vite + TypeScript project: ${projectName}`),
 );
 
-// Создаем проект без вопросов
-execSync(
-  `npm create vite@latest ${projectName} -- --template react-ts --yes --force`,
-  { stdio: 'inherit' },
-);
-
+// Создаём папку проекта и инициализируем npm
+fs.mkdirSync(projectName);
 process.chdir(projectName);
 
-// Устанавливаем базовые зависимости
-console.log(
-  chalk.green('Installing React, ReactDOM, React Router, TypeScript types...'),
-);
-execSync(
-  'npm install react react-dom react-router-dom @types/react @types/react-dom',
-  { stdio: 'inherit' },
-);
+execSync(`npm init -y`, { stdio: 'inherit' });
 
-// Устанавливаем TailwindCSS и PostCSS
-console.log(chalk.green('Installing TailwindCSS and PostCSS...'));
-execSync('npm install -D tailwindcss @tailwindcss/vite @tailwindcss/postcss', {
+// Устанавливаем React, ReactDOM, Vite и TypeScript
+console.log(
+  chalk.green(
+    'Installing React, ReactDOM, Vite, TypeScript and React Router...',
+  ),
+);
+execSync(`npm install react react-dom react-router-dom`, { stdio: 'inherit' });
+execSync(`npm install -D vite typescript @types/react @types/react-dom`, {
   stdio: 'inherit',
 });
-execSync('npx tailwindcss init -p', { stdio: 'inherit' });
 
-// Устанавливаем shadcn/ui
-console.log(chalk.green('Installing shadcn/ui...'));
-execSync('npx shadcn-ui@latest init -y', { stdio: 'inherit' });
+// Устанавливаем Tailwind и плагины для Vite
+console.log(chalk.green('Installing TailwindCSS + plugins...'));
+execSync(`npm install -D tailwindcss @tailwindcss/vite @tailwindcss/postcss`, {
+  stdio: 'inherit',
+});
 
-/* =========================
-   CREATE FSD STRUCTURE
-========================= */
+// Создаём структуру Feature-Sliced Design
 console.log(chalk.green('Creating Feature-Sliced Design structure...'));
 const folders = [
   'src/app',
@@ -60,11 +54,8 @@ const folders = [
 ];
 folders.forEach((f) => fs.mkdirSync(f, { recursive: true }));
 
-/* =========================
-   SETUP TYPESCRIPT CONFIG
-========================= */
-console.log(chalk.green('Configuring tsconfig.json...'));
-
+// Создаём tsconfig.json с правильными путями и настройками
+console.log(chalk.green('Creating tsconfig.json...'));
 const tsconfig = {
   compilerOptions: {
     target: 'ES2017',
@@ -80,6 +71,7 @@ const tsconfig = {
     isolatedModules: true,
     jsx: 'preserve',
     incremental: true,
+    baseUrl: '.',
     paths: {
       '@/*': ['./src/*'],
       '@pages/*': ['./src/pages/*'],
@@ -93,41 +85,51 @@ const tsconfig = {
   include: ['**/*.ts', '**/*.tsx'],
   exclude: ['node_modules'],
 };
-
 fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2));
 
-/* =========================
-   CONFIGURE VITE WITH ALIASES + TAILWIND
-========================= */
-console.log(chalk.green('Configuring vite.config.ts...'));
-
-const viteConfig = `
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+// Создаём vite.config.ts с Tailwind плагином
+console.log(chalk.green('Creating vite.config.ts...'));
+const viteConfig = `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwind from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwind()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
-      "@app": path.resolve(__dirname, "src/app"),
-      "@pages": path.resolve(__dirname, "src/pages"),
-      "@widgets": path.resolve(__dirname, "src/widgets"),
-      "@features": path.resolve(__dirname, "src/features"),
-      "@entities": path.resolve(__dirname, "src/entities"),
-      "@shared": path.resolve(__dirname, "src/shared")
+      "@": path.resolve(__dirname, "./src"),
+      "@app": path.resolve(__dirname, "./src/app"),
+      "@pages": path.resolve(__dirname, "./src/pages"),
+      "@widgets": path.resolve(__dirname, "./src/widgets"),
+      "@features": path.resolve(__dirname, "./src/features"),
+      "@entities": path.resolve(__dirname, "./src/entities"),
+      "@shared": path.resolve(__dirname, "./src/shared")
     }
   }
-})
+});
 `;
 fs.writeFileSync('vite.config.ts', viteConfig);
 
-/* =========================
-   FINISH
-========================= */
-console.log(chalk.green('\nProject created successfully!'));
-console.log(`\nNext steps:`);
+// Создаём базовый index.css с Tailwind
+fs.mkdirSync('src', { recursive: true });
+fs.writeFileSync(
+  path.join('src', 'index.css'),
+  `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n`,
+);
+
+// Обновляем package.json для type="module" и скриптов
+const pkg = JSON.parse(fs.readFileSync('package.json'));
+pkg.type = 'module';
+pkg.scripts = {
+  dev: 'vite',
+  build: 'vite build',
+  preview: 'vite preview',
+};
+fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+
+console.log('');
+console.log(chalk.green('Project created successfully!'));
+console.log('');
 console.log(`cd ${projectName}`);
-console.log(`npm install`);
 console.log(`npm run dev`);
