@@ -8,48 +8,63 @@ const projectName = process.argv[2];
 
 if (!projectName) {
   console.log('Write project name:');
-  console.log('npx create-my-react my-app');
+  console.log('npx github:namaskaro/create-my-react my-app');
   process.exit(1);
 }
 
 const projectPath = path.resolve(process.cwd(), projectName);
-
 console.log(
   chalk.green(`Creating React + Vite + TypeScript project: ${projectName}`),
 );
 
-// Создаём папку проекта
+// 1. Создаём папку проекта
 fs.mkdirSync(projectPath, { recursive: true });
 process.chdir(projectPath);
 
-// Инициализируем npm проект
+// 2. Инициализация npm
 execSync('npm init -y', { stdio: 'inherit' });
 
-// Устанавливаем React, Vite и TypeScript
-console.log(chalk.green('Installing React, ReactDOM, Vite and TypeScript...'));
+// 3. Устанавливаем React, Vite, TypeScript и React Router
+console.log(
+  chalk.green(
+    'Installing React, ReactDOM, Vite, TypeScript and React Router...',
+  ),
+);
 execSync(
-  'npm install react react-dom react-router-dom @vitejs/plugin-react vite typescript tsconfig-paths',
+  'npm install react react-dom react-router-dom vite typescript tsconfig-paths @vitejs/plugin-react',
   { stdio: 'inherit' },
 );
 
-// Инициализируем tsconfig.json
+// 4. Инициализируем tsconfig.json, если нет
 if (!fs.existsSync('tsconfig.json')) {
   execSync('npx tsc --init', { stdio: 'inherit' });
 }
 
-// Устанавливаем TailwindCSS
+// 5. Устанавливаем TailwindCSS
 console.log(chalk.green('Installing TailwindCSS...'));
 execSync('npm install -D tailwindcss postcss autoprefixer', {
   stdio: 'inherit',
 });
-execSync('npx tailwindcss init -p', { stdio: 'inherit' });
+const tailwindBinary = path.join(
+  projectPath,
+  'node_modules',
+  '.bin',
+  'tailwindcss',
+);
+execSync(`${tailwindBinary} init -p`, { stdio: 'inherit' });
 
-// Устанавливаем shadcn/ui
+// 6. Устанавливаем shadcn/ui
 console.log(chalk.green('Installing shadcn/ui...'));
 execSync('npm install @shadcn/ui', { stdio: 'inherit' });
-execSync('npx shadcn-ui init -y', { stdio: 'inherit' });
+const shadcnBinary = path.join(
+  projectPath,
+  'node_modules',
+  '.bin',
+  'shadcn-ui',
+);
+execSync(`${shadcnBinary} init -y`, { stdio: 'inherit' });
 
-// Создаём FSD структуру
+// 7. Создаём FSD структуру
 console.log(chalk.green('Creating Feature-Sliced Design structure...'));
 [
   'src/app',
@@ -63,7 +78,7 @@ console.log(chalk.green('Creating Feature-Sliced Design structure...'));
   'src/shared/config',
 ].forEach((dir) => fs.mkdirSync(dir, { recursive: true }));
 
-// Настраиваем alias для TypeScript
+// 8. Настраиваем alias для TypeScript
 console.log(chalk.green('Configuring TypeScript paths...'));
 const tsconfig = JSON.parse(fs.readFileSync('tsconfig.json'));
 tsconfig.compilerOptions = {
@@ -81,7 +96,7 @@ tsconfig.compilerOptions = {
 };
 fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2));
 
-// Настраиваем alias для Vite
+// 9. Настраиваем alias для Vite
 console.log(chalk.green('Configuring Vite aliases...'));
 const viteConfig = `
 import { defineConfig } from 'vite';
@@ -105,7 +120,7 @@ export default defineConfig({
 `;
 fs.writeFileSync('vite.config.ts', viteConfig);
 
-// Создаём базовые файлы React
+// 10. Создаём базовые файлы React
 fs.mkdirSync('src', { recursive: true });
 fs.writeFileSync(
   'src/main.tsx',
@@ -139,7 +154,7 @@ export default function App() {
 `,
 );
 
-// Финальный вывод
+// 11. Финальный вывод
 console.log(chalk.green('\nProject created successfully!'));
 console.log(`cd ${projectName}`);
 console.log('npm run dev');
