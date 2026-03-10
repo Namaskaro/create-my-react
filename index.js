@@ -1,72 +1,53 @@
 #!/usr/bin/env node
-
 import { execSync } from 'child_process';
+import chalk from 'chalk';
 import fs from 'fs';
-import path from 'path';
 
 const projectName = process.argv[2];
 
 if (!projectName) {
-  console.log('Usage: npx create-my-react my-app');
+  console.log('Write project name:');
+  console.log('npx create-my-react my-app');
   process.exit(1);
 }
 
-const projectPath = path.join(process.cwd(), projectName);
+console.log(
+  chalk.green(`Creating React + Vite + TypeScript project: ${projectName}`),
+);
 
-console.log(`Creating project: ${projectName}`);
+// Создаем проект без вопросов
+execSync(
+  `npm create vite@latest ${projectName} -- --template react-ts --yes --force`,
+  { stdio: 'inherit' },
+);
 
-fs.mkdirSync(projectPath, { recursive: true });
-process.chdir(projectPath);
+process.chdir(projectName);
 
-/* =========================
-   PACKAGE.JSON
-========================= */
+// Устанавливаем базовые зависимости
+console.log(
+  chalk.green('Installing React, ReactDOM, React Router, TypeScript types...'),
+);
+execSync(
+  'npm install react react-dom react-router-dom @types/react @types/react-dom',
+  { stdio: 'inherit' },
+);
 
-const pkg = {
-  name: projectName,
-  version: '1.0.0',
-  type: 'module',
-  scripts: {
-    dev: 'vite',
-    build: 'vite build',
-    preview: 'vite preview',
-  },
-};
-
-fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-
-/* =========================
-   INSTALL DEPENDENCIES
-========================= */
-
-console.log('Installing dependencies...');
-
-execSync('npm install react react-dom react-router-dom', { stdio: 'inherit' });
-
-execSync('npm install -D vite typescript @vitejs/plugin-react', {
-  stdio: 'inherit',
-});
-
+// Устанавливаем TailwindCSS и PostCSS
+console.log(chalk.green('Installing TailwindCSS and PostCSS...'));
 execSync('npm install -D tailwindcss @tailwindcss/vite @tailwindcss/postcss', {
   stdio: 'inherit',
 });
+execSync('npx tailwindcss init -p', { stdio: 'inherit' });
+
+// Устанавливаем shadcn/ui
+console.log(chalk.green('Installing shadcn/ui...'));
+execSync('npx shadcn-ui@latest init -y', { stdio: 'inherit' });
 
 /* =========================
-   TYPESCRIPT
+   CREATE FSD STRUCTURE
 ========================= */
-
-console.log('Creating TypeScript config...');
-
-execSync('npx tsc --init', { stdio: 'inherit' });
-
-/* =========================
-   FSD STRUCTURE
-========================= */
-
-console.log('Creating FSD structure...');
-
+console.log(chalk.green('Creating Feature-Sliced Design structure...'));
 const folders = [
-  'src',
   'src/app',
   'src/pages',
   'src/widgets',
@@ -77,135 +58,76 @@ const folders = [
   'src/shared/api',
   'src/shared/config',
 ];
-
-folders.forEach((folder) => {
-  fs.mkdirSync(folder, { recursive: true });
-});
+folders.forEach((f) => fs.mkdirSync(f, { recursive: true }));
 
 /* =========================
-   VITE CONFIG
+   SETUP TYPESCRIPT CONFIG
 ========================= */
+console.log(chalk.green('Configuring tsconfig.json...'));
 
-console.log('Creating vite.config.ts');
+const tsconfig = {
+  compilerOptions: {
+    target: 'ES2017',
+    lib: ['dom', 'dom.iterable', 'esnext'],
+    allowJs: true,
+    skipLibCheck: true,
+    strict: true,
+    noEmit: true,
+    esModuleInterop: true,
+    module: 'esnext',
+    moduleResolution: 'bundler',
+    resolveJsonModule: true,
+    isolatedModules: true,
+    jsx: 'preserve',
+    incremental: true,
+    paths: {
+      '@/*': ['./src/*'],
+      '@pages/*': ['./src/pages/*'],
+      '@providers/*': ['./src/app/_/providers/*'],
+      '@shared/*': ['./src/shared/*'],
+      '@features/*': ['./src/features/*'],
+      '@entities/*': ['./src/entities/*'],
+      '@widgets/*': ['./src/widgets/*'],
+    },
+  },
+  include: ['**/*.ts', '**/*.tsx'],
+  exclude: ['node_modules'],
+};
 
-fs.writeFileSync(
-  'vite.config.ts',
-  `import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
-import tailwindcss from "@tailwindcss/vite"
+fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2));
+
+/* =========================
+   CONFIGURE VITE WITH ALIASES + TAILWIND
+========================= */
+console.log(chalk.green('Configuring vite.config.ts...'));
+
+const viteConfig = `
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss()
-  ]
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+      "@app": path.resolve(__dirname, "src/app"),
+      "@pages": path.resolve(__dirname, "src/pages"),
+      "@widgets": path.resolve(__dirname, "src/widgets"),
+      "@features": path.resolve(__dirname, "src/features"),
+      "@entities": path.resolve(__dirname, "src/entities"),
+      "@shared": path.resolve(__dirname, "src/shared")
+    }
+  }
 })
-`,
-);
+`;
+fs.writeFileSync('vite.config.ts', viteConfig);
 
 /* =========================
-   POSTCSS
+   FINISH
 ========================= */
-
-fs.writeFileSync(
-  'postcss.config.js',
-  `export default {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
-}
-`,
-);
-
-/* =========================
-   TAILWIND
-========================= */
-
-fs.writeFileSync(
-  'tailwind.config.js',
-  `export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-`,
-);
-
-/* =========================
-   HTML
-========================= */
-
-fs.writeFileSync(
-  'index.html',
-  `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>React App</title>
-</head>
-<body>
-<div id="root"></div>
-<script type="module" src="/src/main.tsx"></script>
-</body>
-</html>
-`,
-);
-
-/* =========================
-   CSS
-========================= */
-
-fs.writeFileSync(
-  'src/index.css',
-  `@import "tailwindcss";
-`,
-);
-
-/* =========================
-   REACT FILES
-========================= */
-
-fs.writeFileSync(
-  'src/main.tsx',
-  `import React from "react"
-import ReactDOM from "react-dom/client"
-import { BrowserRouter } from "react-router-dom"
-import App from "./app/App"
-import "./index.css"
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
-)
-`,
-);
-
-fs.writeFileSync(
-  'src/app/App.tsx',
-  `export default function App() {
-  return (
-    <div className="p-10 text-center">
-      <h1 className="text-4xl font-bold">
-        React + Vite + Tailwind + FSD
-      </h1>
-    </div>
-  )
-}
-`,
-);
-
-/* =========================
-   DONE
-========================= */
-
-console.log('');
-console.log('Project created successfully!');
+console.log(chalk.green('\nProject created successfully!'));
+console.log(`\nNext steps:`);
+console.log(`cd ${projectName}`);
+console.log(`npm install`);
+console.log(`npm run dev`);
