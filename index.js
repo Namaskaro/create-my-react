@@ -29,9 +29,12 @@ console.log(
   ),
 );
 execSync(`npm install react react-dom react-router-dom`, { stdio: 'inherit' });
-execSync(`npm install -D vite typescript @types/react @types/react-dom`, {
-  stdio: 'inherit',
-});
+execSync(
+  `npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom`,
+  {
+    stdio: 'inherit',
+  },
+);
 
 // Устанавливаем Tailwind и плагины для Vite
 console.log(chalk.green('Installing TailwindCSS + plugins...'));
@@ -113,10 +116,7 @@ fs.writeFileSync('vite.config.ts', viteConfig);
 
 // Создаём базовый index.css с Tailwind
 fs.mkdirSync('src', { recursive: true });
-fs.writeFileSync(
-  path.join('src', 'index.css'),
-  `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n`,
-);
+fs.writeFileSync(path.join('src', 'index.css'), `@tailwindcss;`);
 
 // Обновляем package.json для type="module" и скриптов
 const pkg = JSON.parse(fs.readFileSync('package.json'));
