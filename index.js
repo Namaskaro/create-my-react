@@ -2,33 +2,40 @@
 import { execSync } from 'child_process';
 import chalk from 'chalk';
 import fs from 'fs';
+import path from 'path';
 
 const projectName = process.argv[2];
 
 if (!projectName) {
   console.log('Write project name:');
-  console.log('npx github:namaskaro/create-my-react my-app');
+  console.log('npx create-my-react my-app');
   process.exit(1);
 }
+
+const projectPath = path.resolve(process.cwd(), projectName);
 
 console.log(
   chalk.green(`Creating React + Vite + TypeScript project: ${projectName}`),
 );
 
-// Создаём проект Vite без интерактива
+// Создаём папку проекта
+fs.mkdirSync(projectPath, { recursive: true });
+process.chdir(projectPath);
+
+// Инициализируем npm проект
+execSync('npm init -y', { stdio: 'inherit' });
+
+// Устанавливаем React, Vite и TypeScript
+console.log(chalk.green('Installing React, ReactDOM, Vite and TypeScript...'));
 execSync(
-  `npm create vite@latest ${projectName} -- --template react-ts --yes --force`,
+  'npm install react react-dom react-router-dom @vitejs/plugin-react vite typescript tsconfig-paths',
   { stdio: 'inherit' },
 );
-process.chdir(projectName);
 
-// Устанавливаем зависимости
-console.log(chalk.green('Installing dependencies...'));
-execSync('npm install', { stdio: 'inherit' });
-
-// Устанавливаем React Router
-console.log(chalk.green('Installing React Router...'));
-execSync('npm install react-router-dom', { stdio: 'inherit' });
+// Инициализируем tsconfig.json
+if (!fs.existsSync('tsconfig.json')) {
+  execSync('npx tsc --init', { stdio: 'inherit' });
+}
 
 // Устанавливаем TailwindCSS
 console.log(chalk.green('Installing TailwindCSS...'));
@@ -97,6 +104,40 @@ export default defineConfig({
 });
 `;
 fs.writeFileSync('vite.config.ts', viteConfig);
+
+// Создаём базовые файлы React
+fs.mkdirSync('src', { recursive: true });
+fs.writeFileSync(
+  'src/main.tsx',
+  `
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './app/App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+`,
+);
+
+fs.mkdirSync('src/app', { recursive: true });
+fs.writeFileSync(
+  'src/app/App.tsx',
+  `
+import React from 'react';
+
+export default function App() {
+  return (
+    <div className="text-center mt-10">
+      <h1 className="text-3xl font-bold">Hello, React + Tailwind + FSD!</h1>
+    </div>
+  );
+}
+`,
+);
 
 // Финальный вывод
 console.log(chalk.green('\nProject created successfully!'));
