@@ -28,7 +28,7 @@ execSync(
   { stdio: 'inherit' },
 );
 
-execSync('npm install -D tailwindcss postcss autoprefixer @tailwindcss/vite', {
+execSync('npm install -D tailwindcss @tailwindcss/vite @tailwindcss/postcss', {
   stdio: 'inherit',
 });
 
